@@ -38,6 +38,10 @@ public class TokenManager
 
         public void UseTokens(){
             var tokens = GetActiveTokens();
+            if(json){
+                AddItem(tokensKey, JsonConvert.SerializeObject(tokens));
+                return;
+            }
             AddItem(accessTokenKey, tokens["access"]);
             if (hasRefreshToken) AddItem(refreshTokenKey, tokens["refresh"]);
         }
@@ -103,11 +107,11 @@ public class TokenManager
             sw.WriteLine(accessToken);
             sw.WriteLine("------------------------");
             sw.Close();
-            if (!accessToken.Equals("") || refreshToken.Equals(""))
+            if (!accessToken.Equals(""))
             {
                 sw = File.CreateText(@"./../../../active_token.txt");
                 sw.WriteLine(accessToken);
-                sw.WriteLine(refreshToken);
+                if (hasRefreshToken) sw.WriteLine(refreshToken);
                 sw.Close();
             }
         }
@@ -143,15 +147,15 @@ public class TokenManager
                 var file = File.ReadLines(@"./../../../active_token.txt");
                 if (file.Any())
                 {
-                    tokens.Add("access", file.First());
-                    tokens.Add("refresh", file.ElementAt(1));
+                    tokens.Add(accessTokenKey, file.First());
+                    if(hasRefreshToken) tokens.Add(refreshTokenKey, file.ElementAt(1));
                 }
                 return tokens;
             }
             catch (FileNotFoundException)
             {
-                tokens.Add("access", "");
-                tokens.Add("refresh", "");
+                tokens.Add(accessTokenKey, "");
+                if(hasRefreshToken) tokens.Add(refreshTokenKey, "");
                 return tokens;
             }
 
