@@ -29,21 +29,6 @@ public class TokenManager
             this.loginUrl = loginUrl;
         }
 
-        /// <summary>
-        /// Quality of life method that do all the steps to login the user
-        /// </summary>
-        /// <param name="nationalId">National ID to insert</param>
-        /// <param name="password">Password to insert</param>
-        public void Login(string nationalId, string password)
-        {
-            // OTP(Config.OTP);
-            WaitForLogin();
-            WriteToken();
-            //EnsureLogin();
-            //WaitForUserOTP();
-            //WriteToken();
-        }
-
         public void StoreToken(){
             WriteToken();
         }
@@ -53,81 +38,6 @@ public class TokenManager
             AddItem(accessTokenKey, tokens["access"]);
             if (hasRefreshToken) AddItem(refreshTokenKey, tokens["refresh"]);
         }
-
-        /// <summary>
-        /// enters the provided OTP into it's input elements
-        /// </summary>
-        /// <param name="otp">otp numbers to enter</param>
-        private void OTP(string otp)
-        {
-            WebDriverWait wait = new(Driver, TimeSpan.FromSeconds(5));
-            wait.Until(c => c.FindElements(By.CssSelector("ng-otp-input input")).Count > 0);
-            var otpInputs = Driver.FindElements(By.CssSelector("ng-otp-input input"));
-            Console.WriteLine($"length otp inputs: {otpInputs.Count}");
-            for (int i = 0; i < otpInputs.Count; i++)
-            {
-                otpInputs[i].Click();
-                otpInputs[i].SendKeys(otp.ElementAt(i).ToString());
-            }
-            // OTPContinueButton();
-        }
-
-        /// <summary>
-        /// if token exist in "active_token.txt" file it will use it instead of login, else Login normally and wait for user to enter OTP
-        /// </summary>
-        private void AddTokenElseWaitForLogin()
-        {
-            var tokens = GetActiveTokens();
-            // DateTime tokenDate = File.GetLastWriteTime(@"./../../../active_token.txt");
-            // double tokenAge = (DateTime.Now - tokenDate).TotalHours;
-            // Console.WriteLine(tokenAge);
-            Driver.Navigate().GoToUrl(loginUrl);
-            if (!tokens["access"].Equals(""))
-            {
-                AddItem(accessTokenKey, tokens["access"]);
-                if (hasRefreshToken) AddItem(refreshTokenKey, tokens["refresh"]);
-                Driver.Navigate().Refresh();
-            }
-            else
-            {
-                WaitForLogin();
-                EnsureLogin();
-                WriteToken();
-            }
-        }
-
-        /// <summary>
-        /// if token exist in "active_token.txt" file it will use it instead of login, else Login normally
-        /// </summary>
-        /// <param name="nationalId">National ID to insert</param>
-        /// <param name="password">Password to insert</param>
-        private void AddTokenElseLogin()
-        {
-            var tokens = GetActiveTokens();
-            DateTime tokenDate = File.GetLastWriteTime(@"./../../../active_token.txt");
-            double tokenAge = (DateTime.Now - tokenDate).TotalHours;
-            Console.WriteLine(tokenAge);
-            if (!tokens["access"].Equals(""))
-            {
-                Driver.Navigate().GoToUrl(loginUrl);
-                AddItem("vtsAccessToken", tokens["access"]);
-                if (hasRefreshToken) AddItem("vtsRefreshToken", tokens["refresh"]);
-                Driver.Navigate().Refresh();
-            }
-            else
-            {
-                EnsureLogin();
-                WriteToken();
-            }
-        }
-
-        // /// <summary>
-        // /// Adds access token to the current window by saving it to local storage.
-        // /// </summary>
-        // public void AddToken(string key, string token)
-        // {
-        //     if()
-        // }
 
         public void StoringMethod(StoreLocation storeLocation){
             switch(storeLocation){
@@ -162,43 +72,6 @@ public class TokenManager
         public void EnsureLogin()
         {
             if (Driver.Url.Equals(loginUrl)) throw new Exception("Login failed");
-        }
-
-        /// <summary>
-        /// insert the provided National ID into it's input element
-        /// </summary>
-        /// <param name="nationalId">National ID to insert</param>
-        public void NationalId(string nationalId)
-        {
-            var nationalIdInput = Driver.FindElement(By.CssSelector("app-input[controlname='nationalId'] input"));
-            nationalIdInput.SendKeys(nationalId);
-        }
-
-        /// <summary>
-        /// insert the provided password into it's input element
-        /// </summary>
-        /// <param name="password">Password to insert</param>
-        public void Password(string password)
-        {
-            var passwordInput = Driver.FindElement(By.CssSelector("app-input[controlname='password'] input"));
-            passwordInput.SendKeys(password);
-        }
-
-        /// <summary>
-        /// Clicks "Log in" button
-        /// </summary>
-        public void LoginButton()
-        {
-            var loginButton = Driver.FindElement(By.XPath("//app-login-card//button[@type=\"submit\"]"));
-            try
-            {
-                loginButton.Click();
-            }
-            catch (ElementClickInterceptedException)
-            {
-                loginButton.Click();
-
-            }
         }
 
         /// <summary>
