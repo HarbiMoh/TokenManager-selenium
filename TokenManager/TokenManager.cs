@@ -1,7 +1,6 @@
-﻿using OpenQA.Selenium;
+﻿using Newtonsoft.Json;
+using OpenQA.Selenium;
 using OpenQA.Selenium.Support.UI;
-
-namespace TokenManager;
 
 public class TokenManager
 {
@@ -20,6 +19,10 @@ public class TokenManager
         public bool hasRefreshToken = true;
 
         private string storeLocation = "localStorage";
+        
+        public string tokensKey = "tokens";
+
+        public bool json = false;
     
 
         public TokenManager (IWebDriver driver, string loginUrl)
@@ -51,10 +54,18 @@ public class TokenManager
         }
 
         public string GetAccessToken(){
+            if(json){
+                var tokens = GetTokens();
+                return tokens?[accessTokenKey]?? "";
+            }
             return GetItem(accessTokenKey);
         }
 
         public string GetRefreshToken(){
+            if(json){
+                var tokens = GetTokens();
+                return tokens?[refreshTokenKey]?? "";
+            }
             return GetItem(refreshTokenKey);
         }
 
@@ -99,6 +110,10 @@ public class TokenManager
                 sw.WriteLine(refreshToken);
                 sw.Close();
             }
+        }
+
+        private Dictionary<string, string>? GetTokens(){
+            return JsonConvert.DeserializeObject<Dictionary<string, string>>(GetItem(tokensKey));
         }
 
         public string GetItem(string key){
