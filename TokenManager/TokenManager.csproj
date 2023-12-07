@@ -4,7 +4,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <PackageId>SeleniumTokenManager</PackageId>
-    <Version>1.0.1</Version>
+    <Version>1.0.2</Version>
     <Authors>Mohammed Alharbi</Authors>
     <PackageTags>token;manager;selenium;tokens;token manager;tokens manager;token manager for seleium;tokens manager for selenium</PackageTags>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
