@@ -45,7 +45,7 @@ public class TokenManager
                     this.storeLocation = "localStorage";
                     break;
                 case StoreLocation.SESSION_STORAGE:
-                    this.storeLocation = "storageStorage";
+                    this.storeLocation = "sessionStorage";
                     break;
             }
         }
