@@ -8,6 +8,7 @@
     <Authors>Mohammed Alharbi</Authors>
     <PackageTags>token;manager;selenium;tokens;token manager;tokens manager;token manager for seleium;tokens manager for selenium</PackageTags>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Selenium.WebDriver" Version="4.15.0"/>
