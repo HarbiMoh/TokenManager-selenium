@@ -1,28 +1,21 @@
 ﻿using Newtonsoft.Json;
 using OpenQA.Selenium;
+using OpenQA.Selenium.DevTools.V117.IndexedDB;
 using OpenQA.Selenium.Support.UI;
 
 public class TokenManager
 {
 
-        private IJavaScriptExecutor js;
-        private IWebDriver Driver;
+        private readonly IJavaScriptExecutor js;
+        private readonly IWebDriver Driver;
 
-        private string loginUrl;
+        private readonly string loginUrl;
 
         public TimeSpan WAIT_TIME = TimeSpan.FromSeconds(60);
 
-        public string accessTokenKey = "token";
-
-        public string refreshTokenKey = "refreshToken";
-
-        public bool hasRefreshToken = true;
-
         private string storeLocation = "localStorage";
         
-        public string tokensKey = "tokens";
-
-        public bool json = false;
+        private readonly List<string> keys;
     
 
         public TokenManager (IWebDriver driver, string loginUrl)
@@ -30,22 +23,39 @@ public class TokenManager
             Driver = driver;
             js = (IJavaScriptExecutor)Driver;
             this.loginUrl = loginUrl;
+            keys = new();
         }
 
-        public void StoreToken(){
+        /// <summary>
+        /// used to specify the items keys to store thier value
+        /// </summary>
+        /// <param name="keys">list of items keys </param>
+        public void SetKeys(string[] keys){
+            this.keys.Clear();
+            foreach(string key in keys)
+                this.keys.Add(key);
+        }
+        /// <summary>
+        /// store the items specified by thier keys by SetKeys()
+        /// </summary>
+        public void StoreTokens(){
             WriteToken();
         }
 
+        /// <summary>
+        /// use the previously saved keys by StoreTokens()
+        /// </summary>
         public void UseTokens(){
+
             var tokens = GetActiveTokens();
-            if(json){
-                AddItem(tokensKey, JsonConvert.SerializeObject(tokens));
-                return;
-            }
-            AddItem(accessTokenKey, tokens["access"]);
-            if (hasRefreshToken) AddItem(refreshTokenKey, tokens["refresh"]);
+            foreach(var token in tokens)
+                AddItem(token.Key, token.Value);
         }
 
+        /// <summary>
+        /// sets what storage to take and store items from
+        /// </summary>
+        /// <param name="storeLocation">storage to use for operations</param>
         public void StoringMethod(StoreLocation storeLocation){
             switch(storeLocation){
                 case StoreLocation.LOCAL_STORAGE:
@@ -55,22 +65,6 @@ public class TokenManager
                     this.storeLocation = "sessionStorage";
                     break;
             }
-        }
-
-        public string GetAccessToken(){
-            if(json){
-                var tokens = GetTokens();
-                return tokens?[accessTokenKey]?? "";
-            }
-            return GetItem(accessTokenKey);
-        }
-
-        public string GetRefreshToken(){
-            if(json){
-                var tokens = GetTokens();
-                return tokens?[refreshTokenKey]?? "";
-            }
-            return GetItem(refreshTokenKey);
         }
 
         /// <summary>
@@ -99,25 +93,20 @@ public class TokenManager
         /// </summary>
         private void WriteToken()
         {
-            string accessToken = GetAccessToken();
-            string refreshToken = GetRefreshToken();
-
-            Console.WriteLine($"access token: {accessToken}");
             StreamWriter sw = File.AppendText(@"./../../../tokens.txt");
-            sw.WriteLine(accessToken);
+            foreach(var key in keys){
+                sw.WriteLine(GetItem(key));
+            }
             sw.WriteLine("------------------------");
             sw.Close();
-            if (!accessToken.Equals(""))
+            if (keys.Count > 0)
             {
-                sw = File.CreateText(@"./../../../active_token.txt");
-                sw.WriteLine(accessToken);
-                if (hasRefreshToken) sw.WriteLine(refreshToken);
+                sw = File.CreateText(@"./../../../active_tokens.txt");
+                foreach(var key in keys){
+                    sw.WriteLine(GetItem(key));
+                }
                 sw.Close();
             }
-        }
-
-        private Dictionary<string, string>? GetTokens(){
-            return JsonConvert.DeserializeObject<Dictionary<string, string>>(GetItem(tokensKey));
         }
 
         public string GetItem(string key){
@@ -142,22 +131,13 @@ public class TokenManager
         public Dictionary<string, string> GetActiveTokens()
         {
             Dictionary<string, string> tokens = new();
-            try
-            {
+            try{
                 var file = File.ReadLines(@"./../../../active_token.txt");
                 if (file.Any())
-                {
-                    tokens.Add(accessTokenKey, file.First());
-                    if(hasRefreshToken) tokens.Add(refreshTokenKey, file.ElementAt(1));
-                }
-                return tokens;
-            }
-            catch (FileNotFoundException)
-            {
-                tokens.Add(accessTokenKey, "");
-                if(hasRefreshToken) tokens.Add(refreshTokenKey, "");
-                return tokens;
-            }
+                    for(int i=0; i< keys.Count; i++)
+                        tokens.Add(keys[i], file.ElementAt(i));
+            }catch(FileNotFoundException){}
+            return tokens;
 
         }
 
